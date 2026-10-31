@@ -60,4 +60,4 @@
 - [x] Resolve actionable review findings and rerun affected/full checks as needed.
 - [x] Update privacy/audit/readme with exact outcomes and remaining installer-only validation.
 - [x] Secret-scan staged changes.
-- [ ] Commit and publish a draft PR against the audit branch; do not merge into master.
+- [x] Commit and publish a draft PR against the audit branch; do not merge into master. [Draft PR #3](https://github.com/imyeskela/resolve-assistant/pull/3).
