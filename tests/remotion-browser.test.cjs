@@ -9,7 +9,7 @@ test('isolated native preview uses actual frames, toolbar messages, and denies n
   const dir=await fs.mkdtemp(path.join(os.tmpdir(),'remotion-browser-'));let server,browser;
   try{
     const plan=normalizeReactComposition({source:"import React from 'react';import {useCurrentFrame} from 'remotion';export default function Scene(){const frame=useCurrentFrame();return <svg><text>{frame}</text><circle cx={frame+30} cy={40} r={10}/></svg>}"},{width:640,height:360,fps:29.97,duration:2});await prepareRemotionComposition(dir,plan);
-    const id=randomUUID();const preview=await startPreviewServer(async found=>found===id?{dir}:null);server=preview.server;
+    const id=randomUUID();const preview=await startPreviewServer(async found=>found===id?{dir,plan}:null);server=preview.server;
     browser=await puppeteer.launch({executablePath:renderEnvironment().HYPERFRAMES_BROWSER_PATH,headless:true,pipe:true});
     const page=await browser.newPage();await page.setContent('<iframe sandbox="allow-scripts" src="'+preview.url(id)+'"></iframe>');
     const frame=page.mainFrame().childFrames()[0];await frame.waitForFunction('window.__motionReady === true');

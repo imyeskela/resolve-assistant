@@ -20,7 +20,7 @@ test('generated source rejects ambient capabilities and reflection but retains c
   }
  }finally{await fs.rm(dir,{recursive:true,force:true});}
 });
-test('saved inline and bundled code cannot emit STUN in actual render or preview policy; ordinary render works',async()=>{
+test('preview discards saved inline, bundle and self-copying srcdoc attacks; ordinary render works',async()=>{
  const dir=await directory();const udp=dgram.createSocket('udp4');let packets=0,browser,preview;
  udp.on('message',()=>packets++);await new Promise(r=>udp.bind(0,'127.0.0.1',r));
  try{
@@ -28,11 +28,15 @@ test('saved inline and bundled code cannot emit STUN in actual render or preview
   await prepareRemotionComposition(dir,plan);
   const attack=`(()=>{for(const name of ['RTCPeerConnection','webkitRTCPeerConnection']){const C=globalThis[name];if(typeof C==='function'){const p=new C({iceServers:[{urls:'stun:127.0.0.1:${udp.address().port}'}]});p.createDataChannel('local-canary');p.createOffer().then(o=>p.setLocalDescription(o));}}})();`;
   const html=await fs.readFile(path.join(dir,'index.html'),'utf8');
-  await fs.writeFile(path.join(dir,'index.html'),'<script>globalThis.__syntheticInlineRan=true;'+attack+'</script>'+html);
-  await fs.writeFile(path.join(dir,'assets/remotion.js'),attack+await fs.readFile(path.join(dir,'assets/remotion.js'),'utf8'));
+  // The saved script can copy its own CSP-authorized bytes into srcdoc. This is
+  // the audit's bypass: the child has native APIs even when its parent is guarded.
+  // Only inspect the child's API type; do not create a peer or send any packets.
+  const selfCopy=`(()=>{if(parent===top){globalThis.__savedSelfCopyStarted=true;addEventListener('message',e=>{if(e.data?.auditCanary)globalThis.__savedChildAPI=e.data.auditCanary;});const child=document.createElement('iframe');child.srcdoc='<script>'+document.currentScript.textContent+'</'+'script>';document.body.append(child);}else{parent.postMessage({auditCanary:typeof RTCPeerConnection},'*');}})();`;
+  await fs.writeFile(path.join(dir,'index.html'),'<script>globalThis.__syntheticInlineRan=true;'+attack+'</script>'+html.replace('</body>','<script>'+selfCopy+'</script></body>'));
+  await fs.writeFile(path.join(dir,'assets/remotion.js'),'globalThis.__savedBundleRan=true;'+attack+await fs.readFile(path.join(dir,'assets/remotion.js'),'utf8'));
   const result=await renderRemotion(dir,plan);assert.ok(result.bytes>0);
   const renderPackets=packets;
-  const id=randomUUID();preview=await startPreviewServer(j=>j===id?{id,dir}:null);
+  const id=randomUUID();preview=await startPreviewServer(j=>j===id?{id,dir,plan}:null);
   const policy=createPreviewPolicy(path.resolve(__dirname,'..'));policy.registerControllerResult('demo',{id,previewUrl:preview.url(id)});
   browser=await puppeteer.launch({executablePath:browserExecutable(),headless:true,pipe:true});const page=await browser.newPage();const cspMessages=[];page.on('console',m=>{if(m.text().includes('Content Security Policy'))cspMessages.push(m.text());});
   // A failed optional request must never leave generated scripts unprotected.
@@ -42,7 +46,8 @@ test('saved inline and bundled code cannot emit STUN in actual render or preview
   await new Promise(r=>setTimeout(r,700));
   assert.equal(await frame.$eval('#canary',e=>e.textContent),'SAFE RENDER');
   assert.deepEqual({renderPackets,previewPackets:packets-renderPackets},{renderPackets:0,previewPackets:0},'inline and bundled generated scripts must not send UDP');
-  assert.equal(await frame.evaluate(()=>globalThis.__syntheticInlineRan),true,'saved inline code is protected too');
+  assert.equal(await frame.evaluate(()=>globalThis.__syntheticInlineRan),undefined,'saved inline code is never executed in preview');
+  assert.deepEqual(await frame.evaluate(()=>[typeof globalThis.__savedSelfCopyStarted,typeof globalThis.__savedChildAPI,typeof globalThis.__savedBundleRan]),['undefined','undefined','undefined'],'saved CSP self-copy and bundled scripts are excluded');
   assert.equal(await frame.evaluate(()=>typeof RTCPeerConnection),'undefined');
   assert.equal(await frame.evaluate(()=>{try{Object.defineProperty(globalThis,'RTCPeerConnection',{value:()=>{}});return 'changed';}catch{return 'locked';}}),'locked');
   const initialRealm=await frame.evaluate(()=>{

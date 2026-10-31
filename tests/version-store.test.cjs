@@ -158,7 +158,7 @@ async function writeLegacyContext(job,overrides={}){
   const {normalizeRange}=require('../lib/video-context.cjs'),{run}=require('../lib/process.cjs');
   const range=normalizeRange({projectId:job.projectId||'project-a',timelineId:'interview',timelineName:'Interview',fps:25,timelineStart:90000,timelineEnd:91000,markIn:100,markOut:299});
   const directory=path.join(job.dir,'context');await fs.mkdir(directory,{recursive:true});const file=path.join(directory,'image-0.jpg');
-  await run(require('ffmpeg-static'),['-hide_banner','-loglevel','error','-f','lavfi','-i','color=c=red:s=16x16','-frames:v','1','-y',file]);
+  await run(require('../lib/runtime.cjs').runtimeExecutable('ffmpeg'),['-hide_banner','-loglevel','error','-f','lavfi','-i','color=c=red:s=16x16','-frames:v','1','-y',file]);
   job.videoContext={...range,frames:[{file:'image-0.jpg',seconds:0,timecode:range.inTimecode}],transcript:[{start:0,end:1.2,text:'Важная речь',speaker:'Speaker 1'}],speechIncluded:true,speechStatus:'ready',speechSource:'timeline',...overrides};
   await fs.writeFile(path.join(directory,'context.json'),JSON.stringify(job.videoContext));await fs.writeFile(path.join(job.dir,'job.json'),JSON.stringify(job));return{file,range};
 }

@@ -111,7 +111,7 @@ test('frame preparation preserves speech availability details independently of a
   const dir=await directory(t,'duration-speech-');
   const {run}=require('../lib/process.cjs');
   const raw=path.join(dir,'still.png');
-  await run(require('ffmpeg-static'),['-v','error','-f','lavfi','-i','color=red:s=640x360','-frames:v','1','-y',raw]);
+  await run(require('../lib/runtime.cjs').runtimeExecutable('ffmpeg'),['-v','error','-f','lavfi','-i','color=red:s=640x360','-frames:v','1','-y',raw]);
   const range=normalizeRange({projectId:'p',timelineId:'t',fps:24,timelineStart:0,timelineEnd:100,markIn:0,markOut:36});
   const prepared=await prepareContextImages({range,directory:dir,exports:[{file:raw,seconds:0}],transcript:[],speechStatus:'unavailable',speechSource:'davinci',speechError:'SDK unavailable'});
   assert.equal(prepared.speechIncluded,false);
