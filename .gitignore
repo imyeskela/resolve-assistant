@@ -9,6 +9,7 @@ dist/
 .agents/
 .aws/
 .codegraph/
+.runtime/
 .env
 .env.*
 !.env.example

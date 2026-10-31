@@ -3,7 +3,7 @@ const {EventEmitter}=require('node:events');const {PassThrough,Writable}=require
 const {Controller}=require('../lib/controller.cjs');const {GENERATION_LIMITS}=require('../lib/generation-runtime.cjs');
 test('host installs guards in a persistent dedicated session before load and registers only correlated controller results',async t=>{
   const root=path.resolve(__dirname,'..');const id='00000000-0000-4000-8000-000000000001';const previewUrl='http://127.0.0.1:47821/'+ 'a'.repeat(48)+'/'+id+'/index.html?preview=1';
-  let onBeforeRequest,onHeadersReceived,call,win,partition,loaded=false,holdGeneration=false;const controller=new Controller(root);const commands=[];
+  let onBeforeRequest,onHeadersReceived,call,win,partition,loaded=false,holdGeneration=false,launched;const verifiedNode='C:/verified-runtime/node.exe';const controller=new Controller(root);const commands=[];
   const dedicated={webRequest:{onBeforeRequest(fn){onBeforeRequest=fn;},onHeadersReceived(fn){onHeadersReceived=fn;}}};
   const allow=(url,resourceType='subFrame',method='GET')=>{let result;onBeforeRequest({url,resourceType,method},r=>result=!r.cancel);return result;};
   const app=new EventEmitter();app.whenReady=()=>Promise.resolve();app.quit=()=>{};
@@ -16,9 +16,9 @@ test('host installs guards in a persistent dedicated session before load and reg
   const electron={app,BrowserWindow,ipcMain:{handle(_name,handler){call=handler;}},shell:{},dialog:{},session:{fromPartition(name){partition=name;return dedicated;},get defaultSession(){throw new Error('Must not touch the shared default session');}}};
   const oldLoad=Module._load;const hostPath=require.resolve('../plugin/host.cjs');delete require.cache[hostPath];
   try{
-    Module._load=function(name,parent,isMain){if(name==='electron')return electron;if(name==='node:child_process')return {spawn:()=>child};if(name==='./bridge.cjs'&&parent?.filename===hostPath)return {ResolveBridge:class{async context(){return {connected:true,project:{id:'project'}}}close(){}}};if(name.endsWith('WorkflowIntegration.node'))return {};return oldLoad.call(this,name,parent,isMain);};
-    require('../plugin/host.cjs').start({projectRoot:root,nodePath:process.execPath},root);await new Promise(r=>setImmediate(r));
-    assert.equal(loaded,true);assert.ok(partition.startsWith('persist:'));assert.notEqual(partition,'persist:default');assert.equal(allow(previewUrl),false);
+    Module._load=function(name,parent,isMain){if(name==='electron')return electron;if(name==='node:child_process')return {spawn:(exe,args,options)=>{launched={exe,args,options};return child;}};if(name==='../lib/runtime.cjs'&&parent?.filename===hostPath)return {runtimeExecutable:key=>{assert.equal(key,'node');return verifiedNode;}};if(name==='./bridge.cjs'&&parent?.filename===hostPath)return {ResolveBridge:class{async context(){return {connected:true,project:{id:'project'}}}close(){}}};if(name.endsWith('WorkflowIntegration.node'))return {};return oldLoad.call(this,name,parent,isMain);};
+    require('../plugin/host.cjs').start({projectRoot:root,nodePath:'C:/stale-system/node.exe'},root);await new Promise(r=>setImmediate(r));
+    assert.equal(launched.exe,verifiedNode,'host must ignore stale runtime.json nodePath');assert.equal(launched.options.shell,false);assert.equal(loaded,true);assert.ok(partition.startsWith('persist:'));assert.notEqual(partition,'persist:default');assert.equal(allow(previewUrl),false);
     // Uncorrelated messages and controller events cannot register URLs.
     child.stdout.write(JSON.stringify({id:999,result:{id,previewUrl}})+'\n');child.stdout.write(JSON.stringify({event:'stage',data:{id,previewUrl}})+'\n');assert.equal(allow(previewUrl),false);
     const result=await call({sender:win.webContents,senderFrame:win.webContents.mainFrame},'status',{previewUrl:'http://127.0.0.1:9999/probe'});

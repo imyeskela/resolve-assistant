@@ -33,11 +33,11 @@ test('real FFmpeg preparation emits bounded JPEG attachments and rejects missing
   const base=path.resolve(__dirname,'../.tmp');await fs.mkdir(base,{recursive:true});const dir=await fs.mkdtemp(path.join(base,'context-test-'));
   t.after(()=>fs.rm(dir,{recursive:true,force:true}));
   const {run}=require('../lib/process.cjs');
-  const raw=path.join(dir,'frame-0.png');await run(require('ffmpeg-static'),['-hide_banner','-loglevel','error','-f','lavfi','-i','color=c=red:s=1920x1080','-frames:v','1','-y',raw]);
+  const raw=path.join(dir,'frame-0.png');await run(require('../lib/runtime.cjs').runtimeExecutable('ffmpeg'),['-hide_banner','-loglevel','error','-f','lavfi','-i','color=c=red:s=1920x1080','-frames:v','1','-y',raw]);
   const prepared=await video.prepareContextImages({range:video.normalizeRange(metadata),directory:dir,exports:[{file:raw,frame:90300,seconds:0,timecode:'01:00:12:00'}]});
   assert.equal(prepared.frames.length,1);assert.equal(prepared.frames[0].seconds,0);
   assert.ok((await fs.stat(prepared.frames[0].path)).size<1024*1024);
-  const info=JSON.parse(await run(require('ffprobe-static').path,['-v','error','-show_streams','-of','json',prepared.frames[0].path]));
+  const info=JSON.parse(await run(require('../lib/runtime.cjs').runtimeExecutable('ffprobe'),['-v','error','-show_streams','-of','json',prepared.frames[0].path]));
   assert.equal(info.streams[0].width,1280);assert.equal(info.streams[0].height,720);
   await assert.rejects(video.prepareContextImages({range:video.normalizeRange(metadata),directory:dir,exports:[{file:path.join(dir,'missing.png'),seconds:0}]}));
 });

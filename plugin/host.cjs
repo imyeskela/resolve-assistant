@@ -4,6 +4,7 @@ const fs=require('node:fs');
 const {spawn}=require('node:child_process');
 const readline=require('node:readline');
 const {cleanEnvironment}=require('../lib/process.cjs');
+const {runtimeExecutable}=require('../lib/runtime.cjs');
 const {ResolveBridge}=require('./bridge.cjs');
 const {PARTITION,createPreviewPolicy,installPreviewSessionPolicy,installPreviewNavigationPolicy}=require('./preview-policy.cjs');
 const {GENERATION_LIMITS}=require('../lib/generation-runtime.cjs');
@@ -13,7 +14,7 @@ module.exports.start=function(runtime,pluginRoot){
   const previewPolicy=createPreviewPolicy(root);
   function request(method,params={}){return new Promise((resolve,reject)=>{if(!child||child.exitCode!==null)return reject(new Error('Локальный контроллер не запущен'));const id=++next;const modelRequest=['generate','chat.send'].includes(method);const timer=setTimeout(()=>{pending.delete(id);if(modelRequest)request('cancel').catch(()=>{});reject(new Error('Превышено время выполнения задачи'));},method==='render'?750000:modelRequest?GENERATION_LIMITS.hostMs:60000);pending.set(id,{resolve,reject,timer,method});child.stdin.write(JSON.stringify({id,method,params})+'\n');});}
   function startController(){
-    child=spawn(runtime.nodePath,[path.join(root,'lib/controller.cjs')],{cwd:root,env:cleanEnvironment(),windowsHide:true,shell:false,stdio:['pipe','pipe','pipe']});
+    child=spawn(runtimeExecutable('node'),[path.join(root,'lib/controller.cjs')],{cwd:root,env:cleanEnvironment(),windowsHide:true,shell:false,stdio:['pipe','pipe','pipe']});
     child.stdin.on('error',()=>{});child.stderr.on('data',()=>{});
     readline.createInterface({input:child.stdout}).on('line',line=>{let m;try{m=JSON.parse(line);}catch{return;}if(m.event){win?.webContents.send('assistant:event',{event:m.event,data:m.data});return;}const p=pending.get(m.id);if(p){clearTimeout(p.timer);pending.delete(m.id);if(m.error)p.reject(new Error(m.error));else{previewPolicy.registerControllerResult(p.method,m.result);p.resolve(m.result);}}});
     const failed=()=>{for(const p of pending.values()){clearTimeout(p.timer);p.reject(new Error('Локальный контроллер завершился'));}pending.clear();win?.webContents.send('assistant:event',{event:'fatal',data:{message:'Контроллер остановлен. Закройте и снова откройте плагин.'}});};child.once('error',failed);child.once('exit',failed);

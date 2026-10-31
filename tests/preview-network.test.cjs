@@ -10,9 +10,9 @@ test('shared preview policy blocks real meta-refresh and redirect requests while
     const target='http://127.0.0.1:'+observer.address().port+'/navigation-probe';const jobs=new Map();const settings={width:640,height:360,fps:30,duration:2};
     for(const kind of ['hostile','native','legacy']){
       const id=randomUUID(),dir=await fs.mkdtemp(path.join(os.tmpdir(),'preview-network-'));dirs.push(dir);
-      if(kind==='legacy')await prepareComposition(dir,demoMotion(settings));
-      else await prepareRemotionComposition(dir,normalizeReactComposition({source:kind==='hostile'?`export default function Scene(){return <meta httpEquiv="refresh" content="0;url=${target}"/>}`:"import {useCurrentFrame} from 'remotion';export default function Scene(){return <div id='frame'>{useCurrentFrame()}</div>}"},settings));
-      jobs.set(id,{id,dir,kind});
+      const plan=kind==='legacy'?demoMotion(settings):normalizeReactComposition({source:kind==='hostile'?`export default function Scene(){return <meta httpEquiv="refresh" content="0;url=${target}"/>}`:"import {useCurrentFrame} from 'remotion';export default function Scene(){return <div id='frame'>{useCurrentFrame()}</div>}"},settings);
+      await prepareComposition(dir,plan);
+      jobs.set(id,{id,dir,kind,plan});
     }
     preview=await startPreviewServer(async id=>jobs.get(id));
     const policy=createPreviewPolicy(path.resolve(__dirname,'..'));

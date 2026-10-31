@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "platform": "win32",
+  "arch": "x64",
+  "verifiedAt": "2026-10-31",
+  "policy": "Pinned Windows x64 runtime only. Archives are verified before selective extraction; installed executables and retained notices are SHA-256 verified. No global Node or PATH changes.",
+  "artifacts": [
+    {
+      "name": "node",
+      "version": "24.22.2",
+      "bundledUndici": "7.30.1",
+      "archiveName": "node-v24.22.2-win-x64.zip",
+      "url": "https://nodejs.org/dist/v24.22.2/node-v24.22.2-win-x64.zip",
+      "sha256": "ca1bff5d8ead13c9f2ea404a176db46bd430704d5b5113734049fa365e7799e2",
+      "checksumSource": "https://nodejs.org/dist/v24.22.2/SHASUMS256.txt",
+      "releaseSource": "https://nodejs.org/en/blog/release/v24.22.2",
+      "securitySource": "https://nodejs.org/en/blog/release/v24.22.1",
+      "sourceCode": "https://nodejs.org/dist/v24.22.2/node-v24.22.2.tar.gz",
+      "license": "MIT and bundled third-party licenses; retain the complete upstream LICENSE",
+      "files": [
+        {"entry":"node-v24.22.2-win-x64/node.exe","path":"node/node.exe","sha256":"1c331340fa6cac5e4294725959070a143fa0507195a78ad77eed7943f719aac9","executable":"node"},
+        {"entry":"node-v24.22.2-win-x64/LICENSE","path":"node/LICENSE","sha256":"ed34dd8e3f0a78dbaf00d0444ce8e285b015b765379c2e17880455f70370f8e9"},
+        {"entry":"node-v24.22.2-win-x64/README.md","path":"node/README.md","sha256":"55deb09bedae8603da9a6c1cc1993d5d0c2b8a30624fb99a7a20b6b5e67eb694"}
+      ]
+    },
+    {
+      "name": "ffmpeg",
+      "version": "9.0.2",
+      "variant": "Gyan essentials static Windows x64 (ffmpeg and ffprobe from the same archive)",
+      "archiveName": "ffmpeg-9.0.2-essentials_build.zip",
+      "url": "https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-essentials_build.zip",
+      "sha256": "60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba",
+      "checksumSource": "https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-9.0.2-essentials_build.zip.sha256",
+      "releaseSource": "https://github.com/GyanD/codexffmpeg/releases/tag/9.0.2",
+      "vendorSource": "https://www.gyan.dev/ffmpeg/builds/",
+      "vendorListing": "https://ffmpeg.org/download.html",
+      "sourceCode": "https://github.com/FFmpeg/FFmpeg/commit/946fcce07b",
+      "license": "GPL-3.0-or-later (Gyan static build); upstream LICENSE and README retained",
+      "redistribution": "Before publishing an installer, provide GPL-compliant Corresponding Source for the exact build including linked dependencies and build scripts, or another applicable GPL distribution mechanism. Copying LICENSE and linking the FFmpeg repository alone is not proof of compliance. This setup does not prepare a public redistribution source bundle.",
+      "files": [
+        {"entry":"ffmpeg-9.0.2-essentials_build/bin/ffmpeg.exe","path":"ffmpeg/bin/ffmpeg.exe","sha256":"3256173f3f8bffd7df12227c68adf68025edb1832273a9530688a7bb1ed8edec","executable":"ffmpeg"},
+        {"entry":"ffmpeg-9.0.2-essentials_build/bin/ffprobe.exe","path":"ffmpeg/bin/ffprobe.exe","sha256":"f0d36ecbbdd3bcfac3efa078c96c7271c2e68b3810595552ac3b7f17e9a65c52","executable":"ffprobe"},
+        {"entry":"ffmpeg-9.0.2-essentials_build/LICENSE","path":"ffmpeg/LICENSE","sha256":"8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"},
+        {"entry":"ffmpeg-9.0.2-essentials_build/README.txt","path":"ffmpeg/README.txt","sha256":"0342de6bb39dd421cbec2c00d89ad274b640d75ad3f2cab09ffd647ce2d8f949"}
+      ]
+    }
+  ]
+}

@@ -6,6 +6,7 @@ const {RpcClient,codexArguments}=require('../lib/codex.cjs');
 const {cleanEnvironment}=require('../lib/process.cjs');
 const {FFMPEG,FFPROBE,renderEnvironment}=require('../lib/render.cjs');
 (async()=>{
+  require('../lib/runtime.cjs').assertCurrentRuntime();
   const root=path.resolve(__dirname,'..');
   for(const dir of ['lib','plugin','scripts'])for(const name of await fs.readdir(path.join(root,dir))){if(!/\.(cjs|js)$/.test(name))continue;const result=spawnSync(process.execPath,['--check',path.join(root,dir,name)],{encoding:'utf8',windowsHide:true});if(result.status!==0)throw new Error(result.stderr);}
   for(const file of [FFMPEG,FFPROBE,renderEnvironment().HYPERFRAMES_BROWSER_PATH])await fs.access(file);

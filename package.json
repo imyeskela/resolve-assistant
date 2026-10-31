@@ -7,10 +7,11 @@
     "node": ">=22"
   },
   "scripts": {
-    "browser:install": "node scripts/install-browser.cjs",
-    "test": "node --test --test-concurrency=1 tests/*.test.cjs",
-    "check": "node scripts/check.cjs",
-    "smoke": "node scripts/smoke.cjs",
+    "runtime:setup": "node scripts/setup-runtime.cjs",
+    "browser:install": "node scripts/run.cjs scripts/install-browser.cjs",
+    "test": "node scripts/run.cjs --test --test-concurrency=1 tests/*.test.cjs",
+    "check": "node scripts/run.cjs scripts/check.cjs",
+    "smoke": "node scripts/run.cjs scripts/smoke.cjs",
     "install:resolve": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-plugin.ps1",
     "stage": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/install-plugin.ps1 -StageOnly"
   },
@@ -25,8 +26,6 @@
     "@remotion/player": "4.0.534",
     "acorn": "8.19.0",
     "esbuild": "0.28.2",
-    "ffmpeg-static": "5.3.0",
-    "ffprobe-static": "3.1.0",
     "gsap": "3.15.0",
     "hyperframes": "0.8.221",
     "jose": "6.2.14",
