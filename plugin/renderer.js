@@ -28,8 +28,8 @@ function updateDuration(){
 function activeVersion(){return conversation?.versions?.find(v=>v.id===conversation.selectedVersionId);}
 function showSpeech(){
  const range=context?.project?.videoContext,latest=conversation?.contextSnapshots?.at(-1);const evidence=speechEvidence?.rangeKey&&speechEvidence.rangeKey===range?.key?speechEvidence:latest?.range?.key&&latest.range.key===range?.key?latest:null;const saved=evidence||latest;
- const text=!videoContextEnabled?'Видеоконтекст отключён. Длительность доступна вручную.':evidence?.speechStatus==='ready'?`Речь из DaVinci · ${evidence.transcript?.length||0} фрагментов${evidence.speechError?' · Часть речи недоступна: '+evidence.speechError:''}`:evidence?.speechStatus==='no-speech'?'В выбранном диапазоне речь не найдена':evidence?.speechStatus==='unavailable'?`Речь недоступна: ${evidence.speechError||'SDK не вернул текст'}. Отправляются только кадры`:'Речь будет получена из DaVinci при отправке';
- $('speech-status').textContent=text;$('show-speech').hidden=!saved?.transcript?.length;$('show-speech').textContent=evidence?'Показать текст речи':'Показать сохранённый текст речи';$('show-speech').dataset.saved=String(!evidence);return saved;
+ const text=!videoContextEnabled?'Новый захват In/Out отключён. Длительность доступна вручную.':evidence?.speechStatus==='ready'?`Речь из DaVinci · ${evidence.transcript?.length||0} фрагментов${evidence.speechError?' · Часть речи недоступна: '+evidence.speechError:''}`:evidence?.speechStatus==='no-speech'?'В выбранном диапазоне речь не найдена':evidence?.speechStatus==='unavailable'?`Речь недоступна: ${evidence.speechError||'SDK не вернул текст'}. Отправляются только кадры`:range?'Речь будет получена из DaVinci при отправке':'Текущий In/Out не выбран.';
+ $('speech-status').textContent=text+(latest?' Сохранённые материалы этой версии передаются в OpenAI при отправке сообщения.':'');$('show-speech').hidden=!saved?.transcript?.length;$('show-speech').textContent=evidence?'Показать текст речи':'Показать сохранённый текст речи';$('show-speech').dataset.saved=String(!evidence);return saved;
 }
 function snapshotDraft(){const value={draft:$('prompt').value,settings:settings(),videoContextEnabled,manualSize,manualFps,manualDurationSeconds};drafts.set(draftKey(conversation?.id),value);return value;}
 function queueDraftSave(){snapshotDraft();clearTimeout(saveTimer);if(conversation&&!busy)saveTimer=setTimeout(()=>flushDraft().catch(error),250);}
@@ -46,7 +46,7 @@ function updateResolutionControls(){const [w,h]=$('size').value.split('x').map(N
 function updateVideoContext(){
   const range=context?.project?.videoContext,card=$('video-context-card');card.hidden=!range;updateDuration();showSpeech();
   $('video-context-enabled').checked=videoContextEnabled;$('video-context-enabled').disabled=busy;card.classList.toggle('off',!videoContextEnabled);
-  if(range){$('video-context-title').textContent=videoContextEnabled?`Видеоконтекст · ${range.timelineName}`:`Видеоконтекст отключён · ${range.timelineName}`;$('video-context-time').textContent=`${range.inTimecode} → ${range.outTimecode} · ${Number(range.duration.toFixed(3))} с`;card.title=videoContextEnabled?'Убрать видеоконтекст. Длительность снова можно будет изменить вручную.':'Включить видеоконтекст. Длительность будет взята из In/Out и заблокирована.';}
+  if(range){$('video-context-title').textContent=videoContextEnabled?`Видеоконтекст · ${range.timelineName}`:`Захват In/Out отключён · ${range.timelineName}`;$('video-context-time').textContent=`${range.inTimecode} → ${range.outTimecode} · ${Number(range.duration.toFixed(3))} с`;card.title=videoContextEnabled?'Не добавлять новый In/Out. Сохранённые материалы версии остаются в контексте чата.':'Добавлять новый In/Out. Длительность будет взята из диапазона и заблокирована.';}
 }
 function updateVideoSource(){
   const video=videoSettings();$('inherit-video').disabled=busy||!video;
