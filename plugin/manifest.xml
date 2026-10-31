@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BlackmagicDesign><Plugin>
+  <Id>com.local.resolveassistant</Id>
+  <Name>Resolve Assistant</Name>
+  <Version>0.1.0</Version>
+  <Description>Local motion graphics with ChatGPT and HyperFrames</Description>
+  <FilePath>main.js</FilePath>
+</Plugin></BlackmagicDesign>
